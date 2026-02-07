@@ -83,31 +83,56 @@ export function UserTable() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "confirmed":
-        return <Badge variant="default">Confirmed</Badge>;
+        return (
+          <Badge className="bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900">
+            Confirmed
+          </Badge>
+        );
       case "pending":
-        return <Badge variant="outline">Pending</Badge>;
+        return (
+          <Badge variant="outline" className="border-zinc-300 dark:border-zinc-700">
+            Pending
+          </Badge>
+        );
       case "disabled":
-        return <Badge variant="destructive">Disabled</Badge>;
+        return (
+          <Badge variant="destructive" className="bg-zinc-700 hover:bg-zinc-800">
+            Disabled
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return (
+          <Badge variant="outline" className="border-zinc-300 dark:border-zinc-700">
+            {status}
+          </Badge>
+        );
     }
   };
 
   const getRoleBadge = (role: string) => {
     return role === "admin" ? (
-      <Badge variant="default">Admin</Badge>
+      <Badge className="bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900">
+        Admin
+      </Badge>
     ) : (
-      <Badge variant="outline">User</Badge>
+      <Badge variant="outline" className="border-zinc-300 dark:border-zinc-700">
+        User
+      </Badge>
     );
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button
           variant={statusFilter === "all" ? "default" : "outline"}
           onClick={() => setStatusFilter("all")}
           size="sm"
+          className={
+            statusFilter === "all"
+              ? "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-white dark:text-zinc-900"
+              : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          }
         >
           All
         </Button>
@@ -115,6 +140,11 @@ export function UserTable() {
           variant={statusFilter === "pending" ? "default" : "outline"}
           onClick={() => setStatusFilter("pending")}
           size="sm"
+          className={
+            statusFilter === "pending"
+              ? "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-white dark:text-zinc-900"
+              : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          }
         >
           Pending
         </Button>
@@ -122,6 +152,11 @@ export function UserTable() {
           variant={statusFilter === "confirmed" ? "default" : "outline"}
           onClick={() => setStatusFilter("confirmed")}
           size="sm"
+          className={
+            statusFilter === "confirmed"
+              ? "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-white dark:text-zinc-900"
+              : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          }
         >
           Confirmed
         </Button>
@@ -129,38 +164,65 @@ export function UserTable() {
           variant={statusFilter === "disabled" ? "default" : "outline"}
           onClick={() => setStatusFilter("disabled")}
           size="sm"
+          className={
+            statusFilter === "disabled"
+              ? "bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-white dark:text-zinc-900"
+              : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          }
         >
           Disabled
         </Button>
       </div>
 
-      <div className="border rounded-lg">
+      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-900">
+              <TableHead className="text-zinc-900 dark:text-zinc-50 font-semibold">
+                Name
+              </TableHead>
+              <TableHead className="text-zinc-900 dark:text-zinc-50 font-semibold">
+                Email
+              </TableHead>
+              <TableHead className="text-zinc-900 dark:text-zinc-50 font-semibold">
+                Role
+              </TableHead>
+              <TableHead className="text-zinc-900 dark:text-zinc-50 font-semibold">
+                Status
+              </TableHead>
+              <TableHead className="text-zinc-900 dark:text-zinc-50 font-semibold">
+                Created
+              </TableHead>
+              <TableHead className="text-zinc-900 dark:text-zinc-50 font-semibold text-right">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-8 text-zinc-500 dark:text-zinc-400"
+                >
                   No users found
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
+                <TableRow
+                  key={user._id}
+                  className="border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                >
+                  <TableCell className="font-medium text-zinc-900 dark:text-zinc-50">
+                    {user.name}
+                  </TableCell>
+                  <TableCell className="text-zinc-700 dark:text-zinc-300">
+                    {user.email}
+                  </TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-zinc-700 dark:text-zinc-300">
                     {new Date(user.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right space-x-2">
@@ -169,6 +231,7 @@ export function UserTable() {
                         size="sm"
                         onClick={() => handleConfirmUser(user.clerk_user_id)}
                         disabled={confirmingUserId === user.clerk_user_id}
+                        className="bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 h-8"
                       >
                         {confirmingUserId === user.clerk_user_id ? (
                           <Spinner className="h-4 w-4" />
@@ -191,7 +254,7 @@ export function UserTable() {
         </Table>
       </div>
 
-      <div className="text-sm text-muted-foreground">
+      <div className="text-sm text-zinc-600 dark:text-zinc-400">
         Showing {users.length} of {data.total} users
       </div>
     </div>
