@@ -7,6 +7,7 @@ import { Spinner } from "@/components/ui/spinner";
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
+  "/",
   "/auth",
   "/pending",
   "/account-not-found",
@@ -18,9 +19,9 @@ export function SessionWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname?.startsWith(route)
-  );
+  const isPublicRoute =
+    pathname === "/" ||
+    PUBLIC_ROUTES.some((route) => route !== "/" && pathname?.startsWith(route));
 
   useEffect(() => {
     if (isLoaded && !isSignedIn && !isPublicRoute) {

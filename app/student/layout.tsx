@@ -1,12 +1,12 @@
 "use client";
 
 import { ReactNode } from "react";
-import { AdminWrapper } from "@/components/wrappers/AdminWrapper";
+import { StudentWrapper } from "@/components/wrappers/StudentWrapper";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, BookOpen, FileText, Bell, GraduationCap } from "lucide-react";
+import { User, BookOpen, Bell } from "lucide-react";
 
-export default function AdminLayout({
+export default function StudentLayout({
   children,
 }: {
   children: ReactNode;
@@ -14,29 +14,26 @@ export default function AdminLayout({
   const pathname = usePathname();
 
   const isActive = (path: string) => {
-    if (path === "/admin" && pathname === "/admin") return true;
-    if (path !== "/admin" && pathname.startsWith(path)) return true;
+    if (path === "/student" && pathname === "/student") return true;
+    if (path !== "/student" && pathname.startsWith(path)) return true;
     return false;
   };
 
   const navLinks = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/users", label: "Users", icon: Users },
-    { href: "/admin/template", label: "Marksheet Template", icon: FileText },
-    { href: "/admin/marks", label: "Marks Entry", icon: BookOpen },
-    { href: "/admin/notices", label: "Notices", icon: Bell },
-    { href: "/admin/students", label: "Student Profiles", icon: GraduationCap },
+    { href: "/student", label: "My Profile", icon: User },
+    { href: "/student/marks", label: "My Marks", icon: BookOpen },
+    { href: "/student/notices", label: "Notices", icon: Bell },
   ];
 
   return (
-    <AdminWrapper>
+    <StudentWrapper>
       <div className="min-h-screen bg-white dark:bg-zinc-950">
         <div className="flex">
           {/* Sidebar */}
           <aside className="w-64 min-h-[calc(100vh-64px)] sticky top-16 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
             <div className="p-6">
               <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                Admin Panel
+                Student Portal
               </h1>
             </div>
 
@@ -68,6 +65,6 @@ export default function AdminLayout({
           </main>
         </div>
       </div>
-    </AdminWrapper>
+    </StudentWrapper>
   );
 }

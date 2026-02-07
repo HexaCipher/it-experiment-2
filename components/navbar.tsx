@@ -44,6 +44,7 @@ import { useState, useEffect } from "react";
 // Navigation links configuration
 const navigationLinks = [
   { href: "/", label: "Home", icon: Home },
+  { href: "/student", label: "Student Portal", icon: LayoutDashboard, studentOnly: true },
   { href: "/admin", label: "Admin", icon: ShieldCheck, adminOnly: true },
 ];
 
@@ -54,7 +55,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
 
   // Check admin role via Convex
   const dbUser = useQuery(
@@ -63,6 +64,7 @@ export function Navbar() {
   );
 
   const isAdmin = dbUser?.role === "admin";
+  const isStudent = dbUser?.role === "user" && dbUser?.status === "confirmed";
 
   useEffect(() => {
     setMounted(true);
@@ -121,11 +123,13 @@ export function Navbar() {
             </Link>
 
             {/* Desktop Nav */}
+            {isSignedIn && (
             <nav className="hidden lg:flex items-center">
               <NavigationMenu>
                 <NavigationMenuList className="gap-4 flex flex-row">
                   {navigationLinks.map((link) => {
                     if (link.adminOnly && !isAdmin) return null;
+                    if (link.studentOnly && !isStudent) return null;
                     const Icon = link.icon;
                     const active = pathname === link.href;
 
@@ -141,6 +145,7 @@ export function Navbar() {
                 </NavigationMenuList>
               </NavigationMenu>
             </nav>
+            )}
           </div>
 
           {/* Action Area */}
@@ -196,12 +201,21 @@ export function Navbar() {
                 </div>
               </SignedIn>
               <SignedOut>
-                <Button
-                  asChild
-                  className="rounded-full px-6 h-10 shadow-md transition-all hover:shadow-lg active:scale-95 flex items-center"
-                >
-                  <Link href="/auth">Sign In</Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="rounded-full px-5 h-10 transition-all active:scale-95"
+                  >
+                    <Link href="/auth">Sign In</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="rounded-full px-5 h-10 shadow-md transition-all hover:shadow-lg active:scale-95"
+                  >
+                    <Link href="/auth">Sign Up</Link>
+                  </Button>
+                </div>
               </SignedOut>
             </div>
 
@@ -229,8 +243,9 @@ export function Navbar() {
 
                 <div className="flex flex-1 flex-col justify-between p-6 overflow-y-auto">
                   <nav className="space-y-2">
-                    {navigationLinks.map((link) => {
+                    {isSignedIn && navigationLinks.map((link) => {
                       if (link.adminOnly && !isAdmin) return null;
+                      if (link.studentOnly && !isStudent) return null;
                       const Icon = link.icon;
                       const active = pathname === link.href;
 
@@ -312,14 +327,25 @@ export function Navbar() {
                       </div>
                     </SignedIn>
                     <SignedOut>
-                      <SheetClose asChild>
-                        <Button
-                          asChild
-                          className="w-full rounded-xl py-6 text-base font-semibold shadow-md active:scale-95"
-                        >
-                          <Link href="/auth">Sign In</Link>
-                        </Button>
-                      </SheetClose>
+                      <div className="flex flex-col gap-2">
+                        <SheetClose asChild>
+                          <Button
+                            asChild
+                            variant="outline"
+                            className="w-full rounded-xl py-6 text-base font-semibold active:scale-95"
+                          >
+                            <Link href="/auth">Sign In</Link>
+                          </Button>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Button
+                            asChild
+                            className="w-full rounded-xl py-6 text-base font-semibold shadow-md active:scale-95"
+                          >
+                            <Link href="/auth">Sign Up</Link>
+                          </Button>
+                        </SheetClose>
+                      </div>
                     </SignedOut>
                   </div>
                 </div>
