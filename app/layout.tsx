@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nexus — Secure Student Management",
+  title: "PortalSafe — Secure Student Management",
   description:
     "A security-first student management system demonstrating Access Control, HTTPS, Input Validation, and Machine Authorization (RBAC).",
 };

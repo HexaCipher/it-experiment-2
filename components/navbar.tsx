@@ -114,11 +114,11 @@ export function Navbar() {
             >
               <div className="flex size-9 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
                 <span className="text-lg font-bold text-primary-foreground">
-                  A
+                  P
                 </span>
               </div>
               <span className="hidden text-xl font-bold tracking-tight sm:inline-block">
-                Nexus
+                PortalSafe
               </span>
             </Link>
 
