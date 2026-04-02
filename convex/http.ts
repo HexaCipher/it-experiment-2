@@ -4,6 +4,23 @@ import { internal } from "./_generated/api";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { Webhook } from "svix";
 
+// ─── Name Validation Helpers ──────────────────────────────
+/**
+ * Strips leading/trailing whitespace and collapses internal spaces.
+ * Returns the sanitized value.
+ */
+function sanitizeName(raw: string | null | undefined): string {
+  return (raw ?? "").trim().replace(/\s+/g, " ");
+}
+
+/**
+ * Returns true if the name contains any digit character.
+ * Used as a server-side guard — defence-in-depth against API-level bypass.
+ */
+function containsDigit(name: string): boolean {
+  return /\d/.test(name);
+}
+
 const http = httpRouter();
 
 http.route({
@@ -56,7 +73,25 @@ http.route({
         );
       }
 
-      console.log("Creating user:", clerkUserId, email);
+      // ── Server-side name validation (defence-in-depth) ──
+      const firstName = sanitizeName(user.first_name);
+      const lastName = sanitizeName(user.last_name);
+
+      if (containsDigit(firstName) || containsDigit(lastName)) {
+        console.warn(
+          `Rejected user.created — name contains digits: "${firstName}" "${lastName}" (${clerkUserId})`
+        );
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Name must not contain numeric characters.",
+          }),
+          { status: 422, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      const displayName = `${firstName} ${lastName}`.trim() || "New User";
+      console.log("Creating user:", clerkUserId, email, displayName);
 
       try {
         const result = await ctx.runMutation(
@@ -66,7 +101,7 @@ http.route({
             email,
             role: "user",
             status: "pending",
-            name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "New User",
+            name: displayName,
             created_at: Date.now(),
           },
         );
@@ -93,12 +128,31 @@ http.route({
       const user = evt.data;
       const clerkUserId = user.id;
 
+      // ── Server-side name validation (defence-in-depth) ──
+      const firstName = sanitizeName(user.first_name);
+      const lastName = sanitizeName(user.last_name);
+
+      if (containsDigit(firstName) || containsDigit(lastName)) {
+        console.warn(
+          `Rejected user.updated — name contains digits: "${firstName}" "${lastName}" (${clerkUserId})`
+        );
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "Name must not contain numeric characters.",
+          }),
+          { status: 422, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      const displayName = `${firstName} ${lastName}`.trim() || "User";
+
       try {
         // Update user details (email, name) without changing role/status
         await ctx.runMutation(internal.functions.mutations.createUser, {
           clerk_user_id: clerkUserId,
           email: user.email_addresses?.[0]?.email_address ?? "",
-          name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "User",
+          name: displayName,
           role: "user",
           status: "pending",
           created_at: Date.now(),

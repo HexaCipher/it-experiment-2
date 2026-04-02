@@ -1,5 +1,28 @@
 import { z } from "zod/v4";
 
+// ─── Name Validation ─────────────────────────────────────
+// Only letters (including accented/unicode), spaces, hyphens, and apostrophes.
+// Digits and special characters are explicitly rejected.
+export const nameSchema = z
+  .string()
+  .min(2, "Name must be at least 2 characters")
+  .max(50, "Name must be at most 50 characters")
+  .regex(
+    /^[\p{L}\s'\-]+$/u,
+    "Name must contain only letters — no numbers or special characters"
+  );
+
+export const signUpSchema = z.object({
+  firstName: nameSchema,
+  lastName: nameSchema,
+  emailAddress: z.string().email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Must include at least one uppercase letter")
+    .regex(/[0-9]/, "Must include at least one number"),
+});
+
 export const templateSchema = z.object({
   subjects: z.array(z.string().min(1, "Subject name required")).length(7, "Exactly 7 subjects required"),
 });
