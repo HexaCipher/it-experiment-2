@@ -253,6 +253,10 @@ function CustomSignUpForm() {
         </div>
       )}
 
+      {/* Required by Clerk custom flows: mount point for Smart CAPTCHA bot-protection widget.
+           Clerk controls visibility — only shown when a CAPTCHA challenge is triggered. */}
+      <div id="clerk-captcha" />
+
       <Button type="submit" disabled={isSubmitting} className="w-full">
         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Create Account
