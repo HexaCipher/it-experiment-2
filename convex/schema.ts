@@ -6,6 +6,8 @@ import {
   MarksObject,
   StudentProfileObject,
   NoticeObject,
+  AttendanceSubjectTemplateObject,
+  AttendanceRecordObject,
 } from "./types";
 
 export default defineSchema({
@@ -35,4 +37,14 @@ export default defineSchema({
   notices: defineTable(NoticeObject)
     .index("by_active", ["is_active"])
     .index("by_published_at", ["published_at"]),
+
+  attendance_subjects: defineTable(AttendanceSubjectTemplateObject)
+    .index("by_semester", ["semester"]),
+
+  attendance_records: defineTable(AttendanceRecordObject)
+    .index("by_student", ["student_clerk_id"])
+    .index("by_student_semester", ["student_clerk_id", "semester"])
+    .index("by_date", ["date"])
+    .index("by_date_semester_subject", ["date", "semester", "subject_name"])
+    .index("by_student_semester_subject", ["student_clerk_id", "semester", "subject_name"]),
 });

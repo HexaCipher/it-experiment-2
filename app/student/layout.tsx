@@ -16,6 +16,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
 
   const navLinks = [
     { href: "/student",         label: "My Profile" },
+    { href: "/student/attendance", label: "Attendance" },
     { href: "/student/marks",   label: "My Marks"   },
     { href: "/student/notices", label: "Notices"    },
   ];

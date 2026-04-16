@@ -86,3 +86,24 @@ export const NoticeObject = v.object({
   published_at: v.number(),
   is_active: v.boolean(),
 });
+
+// Attendance subjects template per semester
+export const AttendanceSubjectTemplateObject = v.object({
+  semester: v.number(), // 1-8
+  subjects: v.array(v.string()),
+  created_by: v.string(), // clerk_user_id of admin
+  created_at: v.number(),
+  updated_at: v.number(),
+});
+
+// Attendance record per student per semester per subject per date
+export const AttendanceRecordObject = v.object({
+  student_clerk_id: v.string(),
+  semester: v.number(), // 1-8
+  subject_name: v.string(),
+  date: v.string(), // YYYY-MM-DD
+  status: v.union(v.literal("present"), v.literal("absent"), v.literal("dl")),
+  marked_by: v.string(), // clerk_user_id of admin
+  created_at: v.number(),
+  updated_at: v.number(),
+});

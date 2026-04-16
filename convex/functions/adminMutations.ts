@@ -259,6 +259,192 @@ export const saveMarks = mutation({
   },
 });
 
+// ─── ATTENDANCE MANAGEMENT ───────────────────────────────
+
+export const saveAttendanceSubjects = mutation({
+  args: {
+    semester: v.number(),
+    subjects: v.array(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { callerClerkId } = await requireAdmin(ctx);
+
+    if (args.semester < 1 || args.semester > 8) {
+      throw new Error("Semester must be 1-8");
+    }
+
+    const normalizedSubjects = args.subjects
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    if (normalizedSubjects.length === 0) {
+      throw new Error("At least one subject is required");
+    }
+
+    const uniqueSubjects = Array.from(new Set(normalizedSubjects));
+
+    const existing = await ctx.db
+      .query("attendance_subjects")
+      .withIndex("by_semester", (q) => q.eq("semester", args.semester))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        subjects: uniqueSubjects,
+        updated_at: Date.now(),
+      });
+
+      await logAdminAction(ctx, callerClerkId, "update_attendance_subjects", callerClerkId, {
+        semester: args.semester,
+        subjects_count: uniqueSubjects.length,
+      });
+
+      return { success: true, id: existing._id };
+    }
+
+    const id = await ctx.db.insert("attendance_subjects", {
+      semester: args.semester,
+      subjects: uniqueSubjects,
+      created_by: callerClerkId,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    });
+
+    await logAdminAction(ctx, callerClerkId, "create_attendance_subjects", callerClerkId, {
+      semester: args.semester,
+      subjects_count: uniqueSubjects.length,
+    });
+
+    return { success: true, id };
+  },
+});
+
+export const markAttendanceBatch = mutation({
+  args: {
+    date: v.string(),
+    semester: v.number(),
+    subject_name: v.string(),
+    records: v.array(
+      v.object({
+        student_clerk_id: v.string(),
+        status: v.union(v.literal("present"), v.literal("absent"), v.literal("dl")),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const { callerClerkId } = await requireAdmin(ctx);
+
+    if (args.semester < 1 || args.semester > 8) {
+      throw new Error("Semester must be 1-8");
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(args.date)) {
+      throw new Error("Date must be in YYYY-MM-DD format");
+    }
+
+    if (!args.subject_name.trim()) {
+      throw new Error("Subject name is required");
+    }
+
+    if (args.records.length === 0) {
+      throw new Error("At least one attendance record is required");
+    }
+
+    const subjectTemplate = await ctx.db
+      .query("attendance_subjects")
+      .withIndex("by_semester", (q) => q.eq("semester", args.semester))
+      .first();
+
+    if (!subjectTemplate) {
+      throw new Error("Attendance subjects are not configured for this semester");
+    }
+
+    const normalizedSubject = args.subject_name.trim();
+    if (!subjectTemplate.subjects.includes(normalizedSubject)) {
+      throw new Error("Selected subject is not configured for this semester");
+    }
+
+    const uniqueStudentIds = new Set(args.records.map((r) => r.student_clerk_id));
+    if (uniqueStudentIds.size !== args.records.length) {
+      throw new Error("Duplicate student records found in attendance payload");
+    }
+
+    const sessionRecords = await ctx.db
+      .query("attendance_records")
+      .withIndex("by_date_semester_subject", (q) =>
+        q
+          .eq("date", args.date)
+          .eq("semester", args.semester)
+          .eq("subject_name", normalizedSubject)
+      )
+      .collect();
+
+    const existingByStudent = new Map(sessionRecords.map((r) => [r.student_clerk_id, r]));
+
+    for (const record of args.records) {
+      const existing = existingByStudent.get(record.student_clerk_id);
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          status: record.status,
+          marked_by: callerClerkId,
+          updated_at: Date.now(),
+        });
+      } else {
+        await ctx.db.insert("attendance_records", {
+          student_clerk_id: record.student_clerk_id,
+          semester: args.semester,
+          subject_name: normalizedSubject,
+          date: args.date,
+          status: record.status,
+          marked_by: callerClerkId,
+          created_at: Date.now(),
+          updated_at: Date.now(),
+        });
+      }
+    }
+
+    await logAdminAction(ctx, callerClerkId, "mark_attendance_batch", callerClerkId, {
+      date: args.date,
+      semester: args.semester,
+      subject_name: normalizedSubject,
+      records_count: args.records.length,
+    });
+
+    return { success: true };
+  },
+});
+
+export const updateAttendanceRecord = mutation({
+  args: {
+    record_id: v.id("attendance_records"),
+    status: v.union(v.literal("present"), v.literal("absent"), v.literal("dl")),
+  },
+  handler: async (ctx, args) => {
+    const { callerClerkId } = await requireAdmin(ctx);
+
+    const existing = await ctx.db.get(args.record_id);
+    if (!existing) {
+      throw new Error("Attendance record not found");
+    }
+
+    await ctx.db.patch(args.record_id, {
+      status: args.status,
+      marked_by: callerClerkId,
+      updated_at: Date.now(),
+    });
+
+    await logAdminAction(ctx, callerClerkId, "update_attendance_record", existing.student_clerk_id, {
+      date: existing.date,
+      semester: existing.semester,
+      subject_name: existing.subject_name,
+      status: args.status,
+    });
+
+    return { success: true };
+  },
+});
+
 // ─── NOTICES ────────────────────────────────────────────
 
 export const createNotice = mutation({
